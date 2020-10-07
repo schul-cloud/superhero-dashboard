@@ -6,42 +6,11 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 const authHelper = require('../helpers/authentication');
+const { getTimezones } = require('../helpers/timeZoneHelper');
 const api = require('../api');
 const moment = require('moment-timezone');
 
 moment.locale('de');
-
-const removeDuplicates = (myArr, prop) => {
-    return myArr.filter((obj, pos, arr) => {
-        return arr.map(mapObj => mapObj[prop]).indexOf(obj[prop]) === pos;
-    });
-};
-
-const calculateOffsetHours = (offset) => {
-    let prefix = (offset >= 0) ? '+' : '-';
-    const hours = String(Math.floor(Math.abs(offset)/60)).padStart(2, '0');
-    const minutes = String(Math.abs(offset) % 60).padStart(2, '0');
-    return hours === '00' ? '(UTC)' : `(UTC${prefix}${hours}:${minutes})`;
-};
-
-const countries = moment.tz.countries();
-let countryTimezones = countries.map((item) => {
-    return moment.tz.zonesForCountry(item, true);
-});
-
-countryTimezones = [].concat.apply([], countryTimezones);
-countryTimezones = countryTimezones.map((item) => {
-    return {
-        ...item,
-        offsetMin: item.offset * -1,
-        offset: calculateOffsetHours(item.offset * -1)
-    };
-});
-
-countryTimezones = removeDuplicates(countryTimezones, 'name');
-countryTimezones.sort((a, b) => (b.offsetMin - a.offsetMin) + (b.name >= a.name ? 1 : -1) );
-
-countryTimezones = countryTimezones.reverse();
 
 const SCHOOL_FEATURES = [
     'rocketChat',
@@ -202,7 +171,7 @@ const getHandler = async (req, res) => {
         federalState: federalStates.data,
         user: res.locals.currentUser,
         storageType: getStorageTypes(),
-        timeZones: countryTimezones,
+        timeZones: getTimezones(),
         storageProvider,
         limit: true,
         themeTitle: process.env.SC_NAV_TITLE || 'Schul-Cloud'
