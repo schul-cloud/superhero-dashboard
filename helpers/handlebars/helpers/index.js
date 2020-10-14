@@ -98,7 +98,9 @@ module.exports = {
             return options.inverse(this);
         }
     },
-    timeFromNow: (date) => moment(date).fromNow(),
+    timeFromNow: (date, opts) => {
+        return moment(date).fromNow();
+    },
     timeToString: (date, opts) => {
         let now = moment();
         let d = moment(date);
